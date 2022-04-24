@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full"></script>
+
+    <script>
+      const getColor = () => {
+        const alphabet = "0123456789ABCDEF";
+        let color = "#";
+        for (let i = 0; i < 6; i++) {
+          color += alphabet[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      };
+
+      const colors = [];
+
+      const generateColor = () => {
+        const color = getColor();
+        if (colors.includes(color)) {
+          return generateColor();
+        }
+        colors.push(color);
+        return color;
+      };
+
+      const state = {
+        map: null,
+        buses: null,
+      };
+
+      const initMap = async () => {
+        await DG;
+
+        state.map = DG.map("map", {
+          center: [53.902768, 25.814546],
+          zoom: 13,
+        });
+      };
+
+      const initBuses = async () => {
+        const response = await fetch("http://localhost:3001/bus");
+        const jsonResponse = await response.json();
+
+        state.buses = jsonResponse;
+      };
+
+      const initDirection = (directions) => {
+        if (!state.map || !state.buses) {
+          alert("Не загружена карта или маршруты");
+          return;
+        }
+
+        const points = directions.map((direction) => {
+          const { lat, lon } = direction;
+
+          return [lat, lon];
+        });
+
+        console.log(points);
+
+        const polyline = DG.polyline(points, { color: generateColor() }).addTo(
+          state.map
+        );
+        // увеличиваем масштаб так, чтобы было видно всю ломаную
+        state.map.fitBounds(polyline.getBounds());
+      };
+
+      const initMetadata = (ident, directions, startDate, endDate) => {
+        const maxSpeed = directions.reduce((acc, direction) => {
+          return Math.max(acc, direction.speed);
+        }, 0);
+
+        const date =
+          new Date(directions.pop().server_timestamp).getTime() -
+          new Date(directions[0].server_timestamp).getTime();
+
+        const dateInHours = Math.floor(date / 1000 / 60 / 60);
+        const length =
+          dateInHours === 0
+            ? `Длительность: ${dateInHours} часов`
+            : `Длительность: ${dateInHours * 60} минут`;
+
+        const startCoors = `${directions[0].lat}, ${directions[0].lon}`;
+        const lastItem = directions.pop();
+        const endCoors = `${lastItem.lat}, ${lastItem.lon}`;
+
+        const texts = [
+          `Номер автобуса: ${ident}`,
+          `Маршрут: от ${startCoors} до ${endCoors}`,
+
+          `Максимальная скорость: ${maxSpeed} км/ч`,
+          `Дата начала: ${startDate}`,
+          `Дата конца: ${endDate}`,
+        ];
+
+        const div = document.createElement("div");
+        div.innerHTML = texts.join("<br>");
+
+        document.body.appendChild(div);
+      };
+
+      const createDateRangePicker = (ident) => {
+        const bus = state.buses.find((b) => b.ident === ident);
+
+        const dateRangePicker = document.createElement("select");
+        dateRangePicker.type = "text";
+        dateRangePicker.id = "date-range-picker";
+        dateRangePicker.className = "date-range-picker";
+        dateRangePicker.value = "Выберите диапазон дат";
+
+        dateRangePicker.addEventListener("focus", () => {
+          dateRangePicker.value = "";
+        });
+
+        dateRangePicker.addEventListener("blur", () => {
+          if (dateRangePicker.value === "") {
+            dateRangePicker.value = "Выберите диапазон дат";
+          }
+        });
+
+        const dates = bus.directions.map(
+          (direction) => direction.server_timestamp
+        );
+
+        const dateRangePickerDates = dates.map((date) => {
+          const dateString = new Date(date).toISOString();
+          return `<option value="${dateString}">${dateString}</option>`;
+        });
+
+        dateRangePicker.innerHTML = dateRangePickerDates.join("");
+
+        dateRangePicker.addEventListener("change", () => {
+          const [startDate, endDate] = dateRangePicker.value.split(" - ");
+          const startDateInMilliseconds = new Date(startDate).getTime();
+          const endDateInMilliseconds = new Date(endDate).getTime();
+
+          const directions = bus.directions.filter((direction) => {
+            const time = new Date(direction.server_timestamp).getTime();
+            return time >= startDateInMilliseconds; // TOOD: Add check with endDate;
+          });
+          console.log(directions, startDate, endDate);
+
+          initDirection(directions);
+          initMetadata(bus.ident, directions, startDate, endDate);
+        });
+
+        document.body.appendChild(dateRangePicker);
+      };
+
+      const initBusDropdown = () => {
+        const select = document.createElement("select");
+        const idents = state.buses.map((b) => b.ident);
+        idents.forEach((ident) => {
+          const option = document.createElement("option");
+          option.value = ident;
+          option.innerText = ident;
+          select.appendChild(option);
+        });
+
+        select.addEventListener("change", (e) => {
+          const ident = e.target.value;
+          createDateRangePicker(ident);
+          console.log("metadata loaded");
+        });
+
+        document.body.appendChild(select);
+      };
+
+      const init = async () => {
+        await initMap();
+        console.log("map loaded");
+
+        await initBuses();
+        console.log("buses loaded");
+
+        initBusDropdown();
+        console.log("dropdown loaded");
+      };
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+
+    <div id="map" style="height: 80%; min-height: 500px"></div>
+  </body>
+</html>

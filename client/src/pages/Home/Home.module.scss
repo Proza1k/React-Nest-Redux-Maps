@@ -1,0 +1,18 @@
+@import 'src/scss/mixins';
+
+.home {
+  min-height: 100%;
+  background: $color-background-secondary;
+  position: relative;
+
+  &__select_container {
+    max-width: 300px;
+    width: 100%;
+    background: $color-background-secondary;
+    box-shadow: -5px 12px 12px 0px #c9c9c9;
+    padding: 40px;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
