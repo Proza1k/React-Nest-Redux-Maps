@@ -1,4 +1,4 @@
-# Bus Maping
+# Bus Mapping
 
 ## Stack:
 
