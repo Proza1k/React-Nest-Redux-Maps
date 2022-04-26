@@ -11,13 +11,13 @@ export const getColor = (): string => {
   return color
 }
 
-export const generateGeometryPolyline = (direction: BusDirection): [number, number][] => {
-  return direction.directions.map((bus) => [parseFloat(bus.lat), parseFloat(bus.lon)])
+export const generateGeometryPolyline = (bus: BusDirection): [number, number][] => {
+  return bus.directions.map((direction) => [parseFloat(direction.lat), parseFloat(direction.lon)])
 }
 
-export const generateCenterPosition = (directions: BusDirection): [number, number] => {
-  const lon = directions.directions.map((bus) => parseFloat(bus.lon))
-  const lat = directions.directions.map((bus) => parseFloat(bus.lat))
+export const generateCenterPosition = (bus: BusDirection): [number, number] => {
+  const lon = bus.directions.map((direction) => parseFloat(direction.lon))
+  const lat = bus.directions.map((direction) => parseFloat(direction.lat))
   return [(Math.max(...lat) + Math.min(...lat)) / 2, (Math.max(...lon) + Math.min(...lon)) / 2]
 }
 

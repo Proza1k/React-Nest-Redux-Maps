@@ -38,4 +38,14 @@ export class BusesService {
     const buses = await this.busesRepository.find({ ident });
     return buses.map(BusFabric.toModel);
   }
+
+  async getAllIdent(): Promise<BusModel[]> {
+    const ident = await this.busesRepository
+      .createQueryBuilder('bus')
+      .select('ident')
+      .distinct()
+      .getRawMany();
+
+    return ident
+  }
 }

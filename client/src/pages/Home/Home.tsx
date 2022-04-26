@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import cx from 'classnames'
 import css from './Home.module.scss'
@@ -34,6 +34,7 @@ export const Home = () => {
       if (allDataPicker.length > 0) {
         const startDate = allDataPicker[0]
         const endDate = allDataPicker[allDataPicker.length - 1]
+        console.log(generateGeometryPolyline(currentBusData))
 
         dispatch(
           UPDATE_MAP({

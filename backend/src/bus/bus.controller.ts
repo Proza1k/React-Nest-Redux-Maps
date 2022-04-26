@@ -24,9 +24,7 @@ export class BusController {
 
   @Get()
   async getDirections(): Promise<{ status: string; payload: BusDirection[] }> {
-    const buses = await this.service.query(
-      `select distinct ident from ${this.tableName}`,
-    );
+    const buses = await this.service.getAllIdent()
 
     const busWithDirectionsPromises = buses.map(async (bus) => {
       const directions = await this.getBusDirections(bus.ident);

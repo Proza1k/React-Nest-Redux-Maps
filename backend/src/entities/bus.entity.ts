@@ -9,19 +9,19 @@ export class Bus {
   ident: string;
 
   @Column({ default: null })
-  speed: string;
+  lat: string;
 
   @Column({ default: null })
   lon: string;
 
   @Column({ default: null })
-  lat: string;
-
-  @Column({ default: null })
-  server_timestamp: string;
+  speed: string;
 
   @Column({ default: null })
   device_timestamp: string;
+
+  @Column({ default: null })
+  server_timestamp: string;
 
   @Column({ default: null })
   direction: string;

@@ -5,17 +5,19 @@ import { AppService } from './app.service';
 import { BusController } from './bus/bus.controller';
 import { BusesModule } from './bus/bus.module';
 import { BusesService } from './bus/bus.service';
+import { ConfigModule } from '@nestjs/config';
 import { Bus } from './entities/bus.entity';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'node_user',
-      password: 'Proza1k9305',
-      database: 'node_database',
+      type: process.env.DATABASE_TYPE as 'mysql',
+      host: process.env.DATABASE_HOST,
+      port: Number(process.env.DATABASE_PORT),
+      username: process.env.DATABASE_USERNAME,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
       entities: [Bus],
       synchronize: true,
     }),
